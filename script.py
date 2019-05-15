@@ -36,20 +36,17 @@ def run(filename):
     screen = new_screen()
     zbuffer = new_zbuffer()
     tmp = []
-    step_3d = 20
+    step_3d = 100
     consts = ''
     polygons = []
+    edges = []
     symbols['.white'] = ['constants',
                          {'red': [0.2, 0.5, 0.5],
                           'green': [0.2, 0.5, 0.5],
                           'blue': [0.2, 0.5, 0.5]}]
-    reflect = '.white'
 
-    print symbols
-    print "\n\n\n\n"
+
     for command in commands:
-        print command
-
         op = command['op']
 
         if op == 'push':
@@ -60,6 +57,11 @@ def run(filename):
 
         elif op == 'sphere':
             #print 'SPHERE\t' + str(args)
+            if (command['constants'] == None):
+                reflect = '.white'
+            else:
+                reflect = command['constants']
+
             args = command['args']
             add_sphere(polygons,
                        float(args[0]), float(args[1]), float(args[2]),
@@ -70,6 +72,11 @@ def run(filename):
 
         elif op == 'torus':
             #print 'TORUS\t' + str(args)
+            if (command['constants'] == None):
+                reflect = '.white'
+            else:
+                reflect = command['constants']
+
             args = command['args']
             add_torus(polygons,
                       float(args[0]), float(args[1]), float(args[2]),
@@ -80,6 +87,11 @@ def run(filename):
 
         elif op == 'box':
             #print 'BOX\t' + str(args)
+            if (command['constants'] == None):
+                reflect = '.white'
+            else:
+                reflect = command['constants']
+
             args = command['args']
             add_box(polygons,
                     float(args[0]), float(args[1]), float(args[2]),
@@ -88,8 +100,18 @@ def run(filename):
             draw_polygons( polygons, screen, zbuffer, view, ambient, light, symbols, reflect)
             polygons = []
 
+        elif op == 'line':
+            args = command['args']
+            add_edge( edges,
+                      float(args[0]), float(args[1]), float(args[2]),
+                      float(args[3]), float(args[4]), float(args[5]) )
+            matrix_mult(stack[-1], edges)
+            draw_lines(edges, screen, zbuffer, color)
+            edges = []
+
         elif op == 'scale':
             #print 'SCALE\t' + str(args)
+
             args = command['args']
             t = make_scale(float(args[0]), float(args[1]), float(args[2]))
             matrix_mult(stack[-1], t)
@@ -97,6 +119,7 @@ def run(filename):
 
         elif op == 'move':
             #print 'MOVE\t' + str(args)
+
             args = command['args']
             t = make_translate(float(args[0]), float(args[1]), float(args[2]))
             matrix_mult(stack[-1], t)
@@ -104,6 +127,7 @@ def run(filename):
 
         elif op == 'rotate':
             #print 'ROTATE\t' + str(args)
+
             args = command['args']
 
             theta = float(args[1]) * (math.pi / 180)
@@ -122,6 +146,8 @@ def run(filename):
             clear_zbuffer(zbuffer)
 
         elif op == 'display' or op == 'save':
+
+            args = command['args']
             #clear_screen(screen)
             args = command['args']
             if op == 'display':
